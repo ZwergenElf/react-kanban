@@ -2,42 +2,55 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import Item from "./item/Item";
 import { useDroppable } from "@dnd-kit/core";
 import { Card, ColorPicker, Grid, HoverCard } from "@mantine/core";
+
+export interface Section {
+  id: number;
+  color: string;
+  name: string;
+}
+
 export interface Item {
   id: string;
   content: string;
 }
 
 function Section({
-  id,
-  color,
+  section,
   items,
+  onColorChange,
 }: {
-  id: number;
-  color: string;
+  section: Section;
   items: Item[];
+  onColorChange: (section: Section) => void;
 }): ReactNode {
-  const [value, onChange] = useState(color);
   const { setNodeRef } = useDroppable({
-    id,
+    id: section.id,
   });
   return (
     <Card h={"100%"} style={{ overflow: "visible" }}>
       <Card.Section py="xs">
         <Grid justify="left" align="center">
-          <Grid.Col span="content">Section {id + 1}</Grid.Col>
+          <Grid.Col span="content">{section.name}</Grid.Col>
         </Grid>
         <HoverCard width={280} shadow="md">
           <HoverCard.Target>
             <div
-              style={{ width: "100%", height: 5, backgroundColor: value }}
+              style={{
+                width: "100%",
+                height: 5,
+                backgroundColor: section.color,
+              }}
             ></div>
           </HoverCard.Target>
           <HoverCard.Dropdown>
-            <ColorPicker value={value} onChange={onChange} />
+            <ColorPicker
+              value={section.color}
+              onChange={(color) => onColorChange({ ...section, color })}
+            />
           </HoverCard.Dropdown>
         </HoverCard>
       </Card.Section>

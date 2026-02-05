@@ -3,28 +3,29 @@
 import "@mantine/core/styles.css";
 
 import { MantineProvider, SimpleGrid } from "@mantine/core";
-import Section, { type Item as ItemType } from "./section/Section";
+import Section, { type Section as SectionType } from "./section/Section";
 import { useState } from "react";
 import {
   closestCenter,
   DndContext,
   DragOverlay,
-  type DragEndEvent,
   type DragOverEvent,
-  type DragStartEvent,
-  type UniqueIdentifier,
 } from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
 import Item from "./section/item/Item";
 import "./App.css";
+import { useLocalStorage } from "@mantine/hooks";
 
 const sectionsData = [
   {
     id: 0,
     name: "todo",
+    color: "orange",
   },
   {
     id: 1,
     name: "done",
+    color: "green",
   },
 ];
 
@@ -36,8 +37,14 @@ const itemsData = [
 ];
 
 export default function App() {
-  const [sections] = useState(sectionsData);
-  const [items, setItems] = useState(itemsData);
+  const [sections, setSections] = useLocalStorage({
+    key: "sections",
+    defaultValue: sectionsData,
+  });
+  const [items, setItems] = useLocalStorage({
+    key: "items",
+    defaultValue: itemsData,
+  });
   const [overlayItemId, setOverlayItemId] = useState<string | null>(null);
 
   return (
@@ -50,8 +57,8 @@ export default function App() {
           {sections.map((section) => (
             <Section
               key={section.id}
-              id={section.id}
-              color="var(--mantine-color-yellow-5)"
+              section={section}
+              onColorChange={setSectionColor}
               items={items.filter((item) => item.sectionId === section.id)}
             />
           ))}
@@ -69,26 +76,41 @@ export default function App() {
     console.log("Drag over", event);
     const { active, over } = event;
 
-    if (!active || !over) {
-      return;
-    }
-    const item = items.find((i) => i.id === active.id);
-
-    if (!item) {
+    if (!active || !over || active.id === over.id) {
       return;
     }
 
-    const overId = over.id;
+    const activeIndex = items.findIndex((item) => item.id === active.id);
+
     const isContainer = over.data.current ? false : true;
 
     if (isContainer === true) {
       setItems((prevItems) =>
-        prevItems.map((i) =>
-          i.id === item.id ? { ...i, sectionId: Number(overId) } : i
+        prevItems.map((prevItem) =>
+          prevItem.id === items[activeIndex].id
+            ? { ...prevItem, sectionId: Number(over.id) }
+            : prevItem
         )
       );
+    } else {
+      const overIndex = items.findIndex((item) => item.id === over.id);
+      setItems((prevItems) => {
+        prevItems[activeIndex].sectionId = prevItems[overIndex].sectionId;
+        return arrayMove(prevItems, activeIndex, overIndex);
+      });
     }
 
     setOverlayItemId(active.id as string);
+  }
+
+  function setSectionColor(section: SectionType) {
+    setSections((prevSections) =>
+      prevSections.map((prevSection) => {
+        if (prevSection.id !== section.id) {
+          return prevSection;
+        }
+        return section;
+      })
+    );
   }
 }
