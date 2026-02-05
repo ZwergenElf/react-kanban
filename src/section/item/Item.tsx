@@ -1,17 +1,24 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useState, type ReactNode } from "react";
+import {
+  useState,
+  type FormEventHandler,
+  type KeyboardEvent,
+  type ReactNode,
+  type SubmitEvent,
+  type SubmitEventHandler,
+} from "react";
 import "./Item.css";
-import type { Item } from "../Section";
+import type { ItemType } from "../Section";
 import clsx from "clsx";
 import { Input, Text } from "@mantine/core";
 
 export default function Item({
   item,
-  onDoubleClick,
+  onSubmit,
 }: {
-  item: Item;
-  onDoubleClick?: () => void;
+  item: ItemType;
+  onSubmit?: (item: ItemType) => void;
 }): ReactNode {
   const {
     attributes,
@@ -36,9 +43,28 @@ export default function Item({
       {...attributes}
       {...listeners}
     >
-      <div onDoubleClick={() => setIsEdit(!isEdit)}>
-        {!isEdit ? <Text>{item.content}</Text> : <input></input>}
-      </div>
+      <form onSubmit={handleSubmit} onDoubleClick={() => setIsEdit(true)}>
+        {!isEdit ? (
+          <Text>{item.content}</Text>
+        ) : (
+          <Input name="content" defaultValue={item.content}></Input>
+        )}
+      </form>
     </div>
   );
+
+  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    setIsEdit(!isEdit);
+
+    if (onSubmit === undefined) {
+      return;
+    }
+
+    onSubmit({
+      ...item,
+      content: new FormData(event.target).get("content") as string,
+    });
+  }
 }

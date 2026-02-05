@@ -2,21 +2,22 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import Item from "./item/Item";
 import { useDroppable } from "@dnd-kit/core";
 import { Card, ColorPicker, Grid, HoverCard } from "@mantine/core";
 import "./Section.css";
 
-export interface Section {
+export interface SectionType {
   id: number;
   color: string;
   name: string;
 }
 
-export interface Item {
+export interface ItemType {
   id: string;
   content: string;
+  sectionId: number;
 }
 
 function Section({
@@ -24,14 +25,16 @@ function Section({
   items,
   onColorChange,
   onAddItem,
-  onItemDoubleClick,
+  onItemSubmit,
 }: {
-  section: Section;
-  items: Item[];
-  onColorChange: (section: Section) => void;
+  section: SectionType;
+  items: ItemType[];
+  onColorChange: (section: SectionType) => void;
   onAddItem: (sectionId: number) => void;
   onItemDoubleClick?: () => void;
+  onItemSubmit?: (item: ItemType) => void;
 }): ReactNode {
+  useEffect(() => console.log("react"));
   const { setNodeRef } = useDroppable({
     id: section.id,
   });
@@ -63,11 +66,7 @@ function Section({
       <SortableContext items={items} strategy={verticalListSortingStrategy}>
         <div style={{ height: "100%" }} ref={setNodeRef}>
           {items.map((item) => (
-            <Item
-              onDoubleClick={onItemDoubleClick}
-              key={item.id}
-              item={item}
-            ></Item>
+            <Item onSubmit={onItemSubmit} key={item.id} item={item}></Item>
           ))}
           <div className="add-overlay" onClick={() => onAddItem(section.id)}>
             +

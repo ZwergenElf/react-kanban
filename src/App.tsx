@@ -3,7 +3,10 @@
 import "@mantine/core/styles.css";
 
 import { MantineProvider, SimpleGrid } from "@mantine/core";
-import Section, { type Section as SectionType } from "./section/Section";
+import Section, {
+  type ItemType,
+  type SectionType as SectionType,
+} from "./section/Section";
 import { useState } from "react";
 import {
   closestCenter,
@@ -70,6 +73,7 @@ export default function App() {
               items={items.filter((item) => item.sectionId === section.id)}
               onColorChange={setSectionColor}
               onAddItem={addItem}
+              onItemSubmit={updateItem}
             />
           ))}
         </SimpleGrid>
@@ -126,5 +130,16 @@ export default function App() {
 
   function addItem(sectionId: number) {
     setItems([...items, { id: uuid(), content: "New Item", sectionId }]);
+  }
+
+  function updateItem(item: ItemType) {
+    setItems((prevItems) =>
+      prevItems.map((prevItem) => {
+        if (prevItem.id !== item.id) {
+          return prevItem;
+        }
+        return item;
+      })
+    );
   }
 }
