@@ -1,0 +1,8 @@
+.add-overlay {
+    display: grid;
+    place-items: center;
+    border-radius: var(--mantine-radius-md);
+    padding: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
+    margin-bottom: var(--mantine-spacing-sm);   
+    border: 2px dotted var(--mantine-color-dark-5);
+}   

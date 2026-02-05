@@ -1,12 +1,18 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import "./Item.css";
 import type { Item } from "../Section";
 import clsx from "clsx";
-import { Text } from "@mantine/core";
+import { Input, Text } from "@mantine/core";
 
-export default function Item({ item }: { item: Item }): ReactNode {
+export default function Item({
+  item,
+  onDoubleClick,
+}: {
+  item: Item;
+  onDoubleClick?: () => void;
+}): ReactNode {
   const {
     attributes,
     listeners,
@@ -20,6 +26,8 @@ export default function Item({ item }: { item: Item }): ReactNode {
     transition,
   };
 
+  const [isEdit, setIsEdit] = useState(false);
+
   return (
     <div
       ref={setNodeRef}
@@ -28,8 +36,8 @@ export default function Item({ item }: { item: Item }): ReactNode {
       {...attributes}
       {...listeners}
     >
-      <div>
-        <Text>{item.content}</Text>
+      <div onDoubleClick={() => setIsEdit(!isEdit)}>
+        {!isEdit ? <Text>{item.content}</Text> : <input></input>}
       </div>
     </div>
   );

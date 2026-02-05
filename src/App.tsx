@@ -9,12 +9,16 @@ import {
   closestCenter,
   DndContext,
   DragOverlay,
+  MouseSensor,
+  useSensor,
+  useSensors,
   type DragOverEvent,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import Item from "./section/item/Item";
 import "./App.css";
 import { useLocalStorage } from "@mantine/hooks";
+import { v4 as uuid } from "uuid";
 
 const sectionsData = [
   {
@@ -30,13 +34,17 @@ const sectionsData = [
 ];
 
 const itemsData = [
-  { id: "A1", content: "Item A1", sectionId: 0 },
-  { id: "A2", content: "Item A2", sectionId: 0 },
-  { id: "A3", content: "Item A3", sectionId: 1 },
-  { id: "A4", content: "Item A4", sectionId: 1 },
+  { id: uuid(), content: "Item A1", sectionId: 0 },
+  { id: uuid(), content: "Item A2", sectionId: 0 },
+  { id: uuid(), content: "Item A3", sectionId: 1 },
+  { id: uuid(), content: "Item A4", sectionId: 1 },
 ];
 
 export default function App() {
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 10 } })
+  );
+
   const [sections, setSections] = useLocalStorage({
     key: "sections",
     defaultValue: sectionsData,
@@ -52,14 +60,16 @@ export default function App() {
       <DndContext
         onDragOver={handleDragOver}
         collisionDetection={closestCenter}
+        sensors={sensors}
       >
         <SimpleGrid cols={sections.length} spacing="lg" h={"100vh"} p="md">
           {sections.map((section) => (
             <Section
               key={section.id}
               section={section}
-              onColorChange={setSectionColor}
               items={items.filter((item) => item.sectionId === section.id)}
+              onColorChange={setSectionColor}
+              onAddItem={addItem}
             />
           ))}
         </SimpleGrid>
@@ -112,5 +122,9 @@ export default function App() {
         return section;
       })
     );
+  }
+
+  function addItem(sectionId: number) {
+    setItems([...items, { id: uuid(), content: "New Item", sectionId }]);
   }
 }

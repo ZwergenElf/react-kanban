@@ -6,6 +6,7 @@ import { type ReactNode } from "react";
 import Item from "./item/Item";
 import { useDroppable } from "@dnd-kit/core";
 import { Card, ColorPicker, Grid, HoverCard } from "@mantine/core";
+import "./Section.css";
 
 export interface Section {
   id: number;
@@ -22,10 +23,14 @@ function Section({
   section,
   items,
   onColorChange,
+  onAddItem,
+  onItemDoubleClick,
 }: {
   section: Section;
   items: Item[];
   onColorChange: (section: Section) => void;
+  onAddItem: (sectionId: number) => void;
+  onItemDoubleClick?: () => void;
 }): ReactNode {
   const { setNodeRef } = useDroppable({
     id: section.id,
@@ -58,8 +63,15 @@ function Section({
       <SortableContext items={items} strategy={verticalListSortingStrategy}>
         <div style={{ height: "100%" }} ref={setNodeRef}>
           {items.map((item) => (
-            <Item key={item.id} item={item}></Item>
+            <Item
+              onDoubleClick={onItemDoubleClick}
+              key={item.id}
+              item={item}
+            ></Item>
           ))}
+          <div className="add-overlay" onClick={() => onAddItem(section.id)}>
+            +
+          </div>
         </div>
       </SortableContext>
     </Card>
