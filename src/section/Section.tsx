@@ -2,14 +2,14 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import Item from "./item/Item";
 import { useDroppable } from "@dnd-kit/core";
-import { Card, ColorPicker, Grid, HoverCard } from "@mantine/core";
+import { alpha, Card, ColorPicker, Grid, HoverCard } from "@mantine/core";
 import "./Section.css";
 
 export interface SectionType {
-  id: number;
+  id: string;
   color: string;
   name: string;
 }
@@ -17,39 +17,44 @@ export interface SectionType {
 export interface ItemType {
   id: string;
   content: string;
-  sectionId: number;
+  sectionId: string;
 }
 
 function Section({
   section,
   items,
+  isOverDelete,
   onColorChange,
   onAddItem,
   onItemSubmit,
 }: {
   section: SectionType;
   items: ItemType[];
+  isOverDelete: boolean;
   onColorChange: (section: SectionType) => void;
-  onAddItem: (sectionId: number) => void;
+  onAddItem: (sectionId: string) => void;
   onItemDoubleClick?: () => void;
   onItemSubmit?: (item: ItemType) => void;
 }): ReactNode {
-  useEffect(() => console.log("react"));
   const { setNodeRef } = useDroppable({
     id: section.id,
   });
+
+  const { setNodeRef: setDeleteNodeRef } = useDroppable({
+    id: `delete-${section.id}`,
+  });
   return (
     <Card h={"100%"} style={{ overflow: "visible" }}>
-      <Card.Section py="xs">
-        <Grid justify="left" align="center">
-          <Grid.Col span="content">{section.name}</Grid.Col>
+      <Card.Section mb="sm">
+        <Grid align="center" m="sm">
+          <Grid.Col tt="capitalize">{section.name}</Grid.Col>
         </Grid>
-        <HoverCard width={280} shadow="md">
+        <HoverCard shadow="md">
           <HoverCard.Target>
             <div
               style={{
                 width: "100%",
-                height: 5,
+                height: 4,
                 backgroundColor: section.color,
               }}
             ></div>
@@ -68,9 +73,21 @@ function Section({
           {items.map((item) => (
             <Item onSubmit={onItemSubmit} key={item.id} item={item}></Item>
           ))}
-          <div className="add-overlay" onClick={() => onAddItem(section.id)}>
+          <div className="action-overlay" onClick={() => onAddItem(section.id)}>
             +
           </div>
+        </div>
+        <div
+          ref={setDeleteNodeRef}
+          style={{
+            bottom: 0,
+            backgroundColor: isOverDelete
+              ? "var(--mantine-color-red-light)"
+              : alpha("var(--mantine-color-red-light)", 0.4),
+          }}
+          className="action-overlay"
+        >
+          Delete
         </div>
       </SortableContext>
     </Card>

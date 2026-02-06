@@ -1,13 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  useState,
-  type FormEventHandler,
-  type KeyboardEvent,
-  type ReactNode,
-  type SubmitEvent,
-  type SubmitEventHandler,
-} from "react";
+import { useState, type ReactNode, type SubmitEvent } from "react";
 import "./Item.css";
 import type { ItemType } from "../Section";
 import clsx from "clsx";

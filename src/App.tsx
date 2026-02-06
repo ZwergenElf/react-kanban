@@ -15,7 +15,9 @@ import {
   MouseSensor,
   useSensor,
   useSensors,
+  type DragEndEvent,
   type DragOverEvent,
+  type UniqueIdentifier,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import Item from "./section/item/Item";
@@ -25,22 +27,22 @@ import { v4 as uuid } from "uuid";
 
 const sectionsData = [
   {
-    id: 0,
+    id: uuid(),
     name: "todo",
     color: "orange",
   },
   {
-    id: 1,
+    id: uuid(),
     name: "done",
     color: "green",
   },
 ];
 
 const itemsData = [
-  { id: uuid(), content: "Item A1", sectionId: 0 },
-  { id: uuid(), content: "Item A2", sectionId: 0 },
-  { id: uuid(), content: "Item A3", sectionId: 1 },
-  { id: uuid(), content: "Item A4", sectionId: 1 },
+  { id: uuid(), content: "Item A1", sectionId: sectionsData[0].id },
+  { id: uuid(), content: "Item A2", sectionId: sectionsData[0].id },
+  { id: uuid(), content: "Item A3", sectionId: sectionsData[1].id },
+  { id: uuid(), content: "Item A4", sectionId: sectionsData[1].id },
 ];
 
 export default function App() {
@@ -56,14 +58,17 @@ export default function App() {
     key: "items",
     defaultValue: itemsData,
   });
+
+  const [overId, setOverId] = useState<UniqueIdentifier | null>(null);
   const [overlayItemId, setOverlayItemId] = useState<string | null>(null);
 
   return (
     <MantineProvider defaultColorScheme="dark">
       <DndContext
         onDragOver={handleDragOver}
-        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
         sensors={sensors}
+        collisionDetection={closestCenter}
       >
         <SimpleGrid cols={sections.length} spacing="lg" h={"100vh"} p="md">
           {sections.map((section) => (
@@ -74,6 +79,7 @@ export default function App() {
               onColorChange={setSectionColor}
               onAddItem={addItem}
               onItemSubmit={updateItem}
+              isOverDelete={overId === `delete-${section.id}`}
             />
           ))}
         </SimpleGrid>
@@ -87,13 +93,14 @@ export default function App() {
   );
 
   function handleDragOver(event: DragOverEvent) {
-    console.log("Drag over", event);
     const { active, over } = event;
+
+    setOverId(over?.id ?? null);
+    setOverlayItemId(active.id as string);
 
     if (!active || !over || active.id === over.id) {
       return;
     }
-
     const activeIndex = items.findIndex((item) => item.id === active.id);
 
     const isContainer = over.data.current ? false : true;
@@ -102,7 +109,7 @@ export default function App() {
       setItems((prevItems) =>
         prevItems.map((prevItem) =>
           prevItem.id === items[activeIndex].id
-            ? { ...prevItem, sectionId: Number(over.id) }
+            ? { ...prevItem, sectionId: over.id as string }
             : prevItem
         )
       );
@@ -113,8 +120,6 @@ export default function App() {
         return arrayMove(prevItems, activeIndex, overIndex);
       });
     }
-
-    setOverlayItemId(active.id as string);
   }
 
   function setSectionColor(section: SectionType) {
@@ -128,7 +133,7 @@ export default function App() {
     );
   }
 
-  function addItem(sectionId: number) {
+  function addItem(sectionId: string) {
     setItems([...items, { id: uuid(), content: "New Item", sectionId }]);
   }
 
@@ -141,5 +146,12 @@ export default function App() {
         return item;
       })
     );
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    setOverlayItemId(null);
+    if (typeof overId === "string" && overId.startsWith("delete")) {
+      setItems([...items.filter((item) => item.id !== event.active.id)]);
+    }
   }
 }
